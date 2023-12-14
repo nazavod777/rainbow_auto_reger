@@ -1,0 +1,1 @@
+BEARER_TOKEN: str = 'cYTvNiT7WQaQXCXVsbBn7H9cyxboFCQ3'
