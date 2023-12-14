@@ -12,8 +12,10 @@ from utils import logger, get_connector, get_ref_code
 
 
 class Reger:
-    def __init__(self):
-        self.account: LocalAccount = Account.create()
+    def __init__(self,
+                 private_key: str | None = None) -> None:
+        self.account: LocalAccount = Account.create() if not private_key else Account.from_key(private_key=private_key)
+        self.ref_code: str = ''
 
     async def get_sign_message(self,
                                client: aiohttp.ClientSession) -> str:
@@ -22,7 +24,7 @@ class Reger:
                                  'query': 'query getPointsOnboardChallenge($address: String! $referral: String) { pointsOnboardChallenge(address: $address referral: $referral) }',
                                  'variables': json.dumps({
                                      "address": self.account.address,
-                                     "referral": await get_ref_code()
+                                     "referral": self.ref_code
                                  }).replace(' ', ''),
                                  'operationName': 'getPointsOnboardChallenge'
                              })
@@ -43,7 +45,7 @@ class Reger:
                                   'query': 'mutation validatePointsSignature($address: String!, $signature: String!, $referral: String) {\n  onboardPoints(address: $address, signature: $signature, referral: $referral) {\n    error {\n      type\n    }\n    meta {\n      distribution {\n        next\n      }\n      status\n    }\n    leaderboard {\n      stats {\n        total_users\n        total_points\n      }\n      accounts {\n        address\n        earnings {\n          total\n        }\n        ens\n        avatarURL\n      }\n    }\n    user {\n      onboarding {\n        earnings {\n          total\n        }\n        categories {\n          data {\n            usd_amount\n            total_collections\n            owned_collections\n          }\n          type\n          display_type\n          earnings {\n            total\n          }\n        }\n      }\n      referralCode\n      earnings {\n        total\n      }\n      stats {\n        position {\n          current\n        }\n      }\n    }\n  }\n}',
                                   'variables': {
                                       'address': self.account.address,
-                                      'referral': await get_ref_code(),
+                                      'referral': self.ref_code,
                                       'signature': sign
                                   }
                               })
@@ -52,6 +54,8 @@ class Reger:
 
     async def start_reger(self,
                           proxy: str | None = None) -> None:
+        self.ref_code: str = await get_ref_code()
+
         async with aiohttp.ClientSession(connector=await get_connector(proxy=proxy),
                                          headers={
                                              'authorization': f'Bearer {config.BEARER_TOKEN}',
@@ -65,19 +69,20 @@ class Reger:
         async with aiofiles.open(file='registered.txt',
                                  mode='a',
                                  encoding='utf-8-sig') as file:
-            await file.write(f'{self.account.address}:{self.account.key.hex()}:{received_points}\n')
+            await file.write(f'{self.account.address}:{self.account.key.hex()}:{self.ref_code}:{received_points}\n')
 
         logger.success(f'Successfully registered account {self.account.address} | {received_points}')
 
 
 async def start_reger(software_method: int,
                       proxy: str | None = None,
-                      proxies_cycled: cycle | None = None) -> None:
+                      proxies_cycled: cycle | None = None,
+                      private_key: str | None = None) -> None:
     match software_method:
-        case 1:
+        case 1 | 3:
             while True:
                 try:
-                    await Reger().start_reger(proxy=proxy)
+                    await Reger(private_key=private_key).start_reger(proxy=proxy)
 
                 except Exception as error:
                     logger.error(f'Unexpected Error: {error}')
