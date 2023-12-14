@@ -19,6 +19,11 @@ async def main() -> None:
             tasks: list = [start_reger(software_method=software_method,
                                        proxies_cycled=proxies_cycled) for _ in range(threads)]
 
+        case 3:
+            tasks: list = [start_reger(software_method=software_method,
+                                       proxies_cycled=proxies_cycled,
+                                       private_key=current_private_key) for current_private_key in accounts_list]
+
         case _:
             return
 
@@ -35,13 +40,24 @@ if __name__ == '__main__':
     else:
         proxies_list: list[str] = []
 
+    if exists(path='accounts.txt'):
+        with open(file='accounts.txt',
+                  mode='r',
+                  encoding='utf-8-sig') as file:
+            accounts_list: list[str] = [row.strip() if row.strip().startswith('0x')
+                                        else f'0x{row.strip()}' for row in file]
+
+    else:
+        accounts_list: list[str] = []
+
     proxies_cycled: cycle | None = cycle(proxies_list) if proxies_list else None
 
-    logger.success(f'Successfully loaded {len(proxies_list)} proxies')
+    logger.success(f'Successfully loaded {len(accounts_list)} accounts | {len(proxies_list)} proxies')
 
     threads: int = int(input('\nThreads: '))
     software_method: int = int(input('\n1. Register 1 account per 1 proxy\n'
                                      '2. Infinity register\n'
+                                     '3. Register with private keys\n'
                                      'Choose: '))
     print()
 
