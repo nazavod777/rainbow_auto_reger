@@ -32,10 +32,7 @@ async def main() -> None:
 
 if __name__ == '__main__':
     if exists(path='proxies.txt'):
-        with open(file='proxies.txt',
-                  mode='r',
-                  encoding='utf-8-sig') as file:
-            proxies_list: list[str] = [Proxy.from_str(proxy=row.strip()).as_url for row in file]
+        proxies_list: list[str] = [proxy.as_url for proxy in Proxy.from_file(filepath='proxies.txt')]
 
     else:
         proxies_list: list[str] = []
