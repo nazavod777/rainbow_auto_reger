@@ -1,5 +1,6 @@
 import json
 from itertools import cycle
+from random import choice
 
 import aiofiles
 import aiohttp
@@ -8,7 +9,7 @@ from eth_account.account import LocalAccount
 from eth_account.messages import encode_defunct
 
 import config
-from utils import logger, get_connector, get_ref_code
+from utils import logger, get_connector, ref_codes
 
 
 class Reger:
@@ -54,7 +55,7 @@ class Reger:
 
     async def start_reger(self,
                           proxy: str | None = None) -> None:
-        self.ref_code: str = await get_ref_code()
+        self.ref_code: str = choice(ref_codes)
 
         async with aiohttp.ClientSession(connector=await get_connector(proxy=proxy),
                                          headers={
