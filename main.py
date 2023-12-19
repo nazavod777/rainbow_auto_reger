@@ -21,7 +21,7 @@ async def main() -> None:
 
         case 3:
             tasks: list = [start_reger(software_method=software_method,
-                                       proxies_cycled=next(proxies_cycled) if proxies_list else None,
+                                       proxy=next(proxies_cycled) if proxies_list else None,
                                        private_key=current_private_key) for current_private_key in accounts_list]
 
         case _:
