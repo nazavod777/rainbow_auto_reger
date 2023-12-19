@@ -28,7 +28,8 @@ class Reger:
                                      "referral": self.ref_code
                                  }).replace(' ', ''),
                                  'operationName': 'getPointsOnboardChallenge'
-                             })
+                             },
+                             verify_ssl=False)
 
         return (await r.json())['data']['pointsOnboardChallenge']
 
@@ -49,7 +50,8 @@ class Reger:
                                       'referral': self.ref_code,
                                       'signature': sign
                                   }
-                              })
+                              },
+                              verify_ssl=False)
 
         return (await r.json())['data']['onboardPoints']['user']['earnings']['total']
 
@@ -94,7 +96,7 @@ async def start_reger(software_method: int,
         case 2:
             while True:
                 try:
-                    await Reger().start_reger(proxy=next(proxies_cycled) if proxies_cycled else None)
+                    await Reger().start_reger(proxy=next(proxies_cycled) if proxies_cycled else proxy)
 
                 except Exception as error:
                     logger.error(f'Unexpected Error: {error}')
